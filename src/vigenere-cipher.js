@@ -1,62 +1,52 @@
 //*const CustomError = require("../extensions/custom-error");
 
 class VigenereCipheringMachine {
-  constructor (direct = true) {
-        this.direct = direct;
+    constructor(direct = true) {
+      this.direct = direct;
+    }
+    encrypt(message, key) {
+      if (!message || !key) throw new Error("Error");
+      let result = this.crypt(message.toLowerCase(), this.filterKey(key.toLowerCase()))
+      return this.direct ? result : result.split("").reverse().join("")
+    }
+  
+    decrypt(message, key) {
+      if (!message || !key) throw new Error("Error");
+      let result = this.crypt(message.toLowerCase(), this.filterKey(key.toLowerCase()), 'decrypt')
+      return this.direct ? result : result.split("").reverse().join("")
+    }
+  
+    crypt(input, key, mode) {
+      let result = "";
+      if (mode == 'decrypt') {
+        for (let i = 0; i < key.length; i++)
+          key[i] = (26 - key[i]) % 26;
+      }
+      for (let i = 0, j = 0; i < input.length; i++) {
+        let c = input.charCodeAt(i);
+        if (this.letter(c)) {
+          result += String.fromCharCode((c - 97 + key[j % key.length]) % 26 + 97);
+          j++;
+        } else {
+          result += input.charAt(i);
+        }
+      }
+      return result.toUpperCase();
+    }
+  
+    letter(c) {
+        return 97 <= c && c <= 122
     }
 
-    encrypt( message, key) {
-        var count = 0;
-        var finalMessage =[];
-        if(message === undefined || key === undefined){
-            throw new Error('Parameters not defined');
-        }
-        if(this.direct === false){
-            key = key.split('').reverse().join('');
-        }
-        for (i = 0; i < message.length; i++) {
-            if(message[i].charCodeAt(0) >= 65 && message[i].charCodeAt(0) <= 90 || message[i].charCodeAt(0) >= 97 && message[i].charCodeAt(0) <= 122){
-                var indexLet = message[i].toUpperCase().charCodeAt(0) + key[count % key.length].toUpperCase().charCodeAt(0) - 65;
-                if(indexLet > 90){
-                    indexLet = indexLet - 91 + 65;
-                }
-                finalMessage.push(String.fromCharCode(indexLet));
-                count++;
-            }else{
-                finalMessage.push(message[i]);
-            }
-        }
-        return finalMessage.join('');
+    filterKey(key) {
+      let result = [];
+      for (let i = 0; i < key.length; i++) {
+        let c = key.charCodeAt(i);
+        if (this.letter(c))
+          result.push((c - 65) % 32);
+      }
+      return result;
     }
-
-    decrypt(encryptedMessage, key ) {
-        var count = 0;
-        var finalMessage =[];
-        if(encryptedMessage === undefined || key === undefined){
-            throw new Error('Parameters not defined');
-        }
-        if(this.direct === false){
-            encryptedMessage = encryptedMessage.split('').reverse().join('');
-            key = key.split('').reverse().join('');
-        }
-        for (i = 0; i < encryptedMessage.length; i++) {
-            if (encryptedMessage[i].charCodeAt(0) >= 65 && encryptedMessage[i].charCodeAt(0) <= 90 || encryptedMessage[i].charCodeAt(0) >= 97 && encryptedMessage[i].charCodeAt(0) <= 122) {
-                var indexLet = 65 + encryptedMessage[i].toUpperCase().charCodeAt(0) - key[count % key.length].toUpperCase().charCodeAt(0);
-                if (indexLet < 65){
-                    indexLet = 91 - (65 - indexLet);
-                } 
-                finalMessage.push(String.fromCharCode(indexLet));
-                count++;
-            }
-            else {
-                finalMessage.push(encryptedMessage[i]);
-            }
-        }
-        if (this.direct === false) {
-            finalMessage = finalMessage.reverse();
-        }
-        return finalMessage.join('');
-    }
-}
+  }
 
 module.exports = VigenereCipheringMachine;
